@@ -5,16 +5,450 @@
     <link rel="stylesheet" href="/src/styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kritzelwerk</title>
+    <script>
+      try {
+        const theme = localStorage.getItem("kritzelwerk.theme");
+        document.documentElement.dataset.theme =
+          theme === "latte" || theme === "mocha" ? theme : "mocha";
+      } catch {
+        document.documentElement.dataset.theme = "mocha";
+      }
+    </script>
     <script type="module" src="/src/main.ts" defer></script>
   </head>
 
   <body>
-    <main id="editor" class="editor" aria-label="Rust-Editor"></main>
-    <pre
-      id="output"
-      tabindex="0"
-      aria-label="Ausgabe"
-      aria-live="polite"
-    ></pre>
+    <nav id="menubar" aria-label="Hauptmenü">
+      <div class="menubar-menus" role="menubar">
+        <div class="menu">
+          <button
+            type="button"
+            class="menu-button"
+            role="menuitem"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Datei
+          </button>
+          <div class="menu-popup" role="menu" hidden>
+            <button type="button" role="menuitem" class="menu-item" data-action="new-snippet">
+              Neues Rust-Snippet <span class="menu-shortcut">Strg+N</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="new-java-snippet"
+            >
+              Neues Java-Snippet
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="new-javascript-snippet"
+            >
+              Neues JavaScript-Snippet
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="open-snippet">
+              Snippet öffnen … <span class="menu-shortcut">Strg+P</span>
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="save-snippet">
+              Speichern <span class="menu-shortcut">Strg+S</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="cargo-dependencies"
+            >
+              Cargo-Abhängigkeiten …
+              <span class="menu-shortcut">Strg+Umschalt+D</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="export-snippet"
+            >
+              Snippet exportieren …
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="import-snippet"
+            >
+              Snippet importieren …
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="export-project"
+            >
+              Als Cargo-Projekt exportieren …
+            </button>
+          </div>
+        </div>
+
+        <div class="menu">
+          <button
+            type="button"
+            class="menu-button"
+            role="menuitem"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Bearbeiten
+          </button>
+          <div class="menu-popup" role="menu" hidden>
+            <button type="button" role="menuitem" class="menu-item" data-action="undo">
+              Rückgängig <span class="menu-shortcut">Strg+Z</span>
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="redo">
+              Wiederholen <span class="menu-shortcut">Strg+Umschalt+Z</span>
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="select-all">
+              Alles auswählen <span class="menu-shortcut">Strg+A</span>
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="completion">
+              Autovervollständigung
+              <span class="menu-shortcut">Strg+Leertaste</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="leader-mappings"
+            >
+              Leader-Belegungen …
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="settings"
+            >
+              Einstellungen …
+            </button>
+          </div>
+        </div>
+
+        <div class="menu">
+          <button
+            type="button"
+            class="menu-button"
+            role="menuitem"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Ansicht
+          </button>
+          <div class="menu-popup" role="menu" hidden>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="zen-toggle"
+            >
+              <span id="zen-toggle-label">Zen-Modus umschalten</span>
+              <span class="menu-shortcut">F11</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="zen-config"
+            >
+              Zen-Modus konfigurieren …
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="dock-output"
+            >
+              Ausgabe andocken …
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="dock-assistant"
+            >
+              KI andocken …
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="dock-reset"
+            >
+              Standardlayout wiederherstellen
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="theme-picker">
+              Theme wechseln … <span class="menu-shortcut">Strg+Umschalt+T</span>
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="assistant">
+              KI-Seitenleiste <span class="menu-shortcut">Strg+Umschalt+L</span>
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="toggle-focus">
+              Fokus Editor/Ausgabe <span class="menu-shortcut">F6</span>
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="zoom-in">
+              Vergrößern <span class="menu-shortcut">Strg++</span>
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="zoom-out">
+              Verkleinern <span class="menu-shortcut">Strg+-</span>
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="zoom-reset">
+              Zoom zurücksetzen <span class="menu-shortcut">Strg+0</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="menu">
+          <button
+            type="button"
+            class="menu-button"
+            role="menuitem"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Ausführen
+          </button>
+          <div class="menu-popup" role="menu" hidden>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="execution-mode"
+            >
+              Ausführungsmodus …
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="debug-toggle-breakpoint"
+            >
+              Haltepunkt setzen/entfernen
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="debug-continue"
+            >
+              Debuggen/Weiter
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="debug-next"
+            >
+              Nächster Schritt
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="debug-stop"
+            >
+              Debug-Sitzung stoppen
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="run">
+              Snippet ausführen <span class="menu-shortcut">Strg+Enter</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              class="menu-item"
+              data-action="run-history"
+            >
+              Laufverlauf …
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="next-diagnostic">
+              Nächste Diagnose <span class="menu-shortcut">F8</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="menu">
+          <button
+            type="button"
+            class="menu-button"
+            role="menuitem"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Hilfe
+          </button>
+          <div class="menu-popup" role="menu" hidden>
+            <button type="button" role="menuitem" class="menu-item" data-action="shortcuts">
+              Tastenkürzel …
+            </button>
+            <button type="button" role="menuitem" class="menu-item" data-action="about">
+              Über Kritzelwerk
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="zoom-controls" role="group" aria-label="Zoom">
+        <button
+          type="button"
+          id="zoom-out"
+          class="zoom-button"
+          aria-label="Verkleinern"
+        >
+          −
+        </button>
+        <button
+          type="button"
+          id="zoom-value"
+          class="zoom-button zoom-value"
+          aria-label="Zoom zurücksetzen"
+        >
+          100 %
+        </button>
+        <button
+          type="button"
+          id="zoom-in"
+          class="zoom-button"
+          aria-label="Vergrößern"
+        >
+          +
+        </button>
+      </div>
+    </nav>
+
+    <div id="workspace">
+      <aside id="dock-left" class="dock dock-left" hidden>
+        <div class="dock-tabs" role="tablist" aria-label="Dock links"></div>
+        <div class="dock-content"></div>
+        <div
+          class="dock-resizer"
+          tabindex="0"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Größe Dock links"
+        ></div>
+      </aside>
+
+      <div id="center-column">
+        <div id="main-column">
+          <header id="snippet-bar">
+            <span id="snippet-name">unbenannt</span>
+            <span id="snippet-language" class="snippet-language"></span>
+            <span id="snippet-mode" class="snippet-mode"></span>
+            <span id="snippet-dirty" class="snippet-dirty" hidden>*</span>
+            <span class="snippet-bar-right">
+              <span id="lsp-hint" class="lsp-hint" hidden></span>
+              <span class="snippet-hints">
+                Strg+S speichern · Strg+N neu · Strg+P öffnen · Strg+Leertaste
+                Vorschläge · Strg+Umschalt+T Theme
+              </span>
+            </span>
+          </header>
+
+          <main id="editor" class="editor" aria-label="Rust-Editor"></main>
+        </div>
+
+        <aside id="dock-bottom" class="dock dock-bottom" hidden>
+          <div class="dock-tabs" role="tablist" aria-label="Dock unten"></div>
+          <div class="dock-content"></div>
+          <div
+            class="dock-resizer"
+            tabindex="0"
+            role="separator"
+            aria-orientation="horizontal"
+            aria-label="Größe Dock unten"
+          ></div>
+        </aside>
+      </div>
+
+      <aside id="dock-right" class="dock dock-right" hidden>
+        <div class="dock-tabs" role="tablist" aria-label="Dock rechts"></div>
+        <div class="dock-content"></div>
+        <div
+          class="dock-resizer"
+          tabindex="0"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Größe Dock rechts"
+        ></div>
+      </aside>
+    </div>
+
+    <div id="dock-storage" hidden>
+      <div id="output-panel" class="dock-panel" data-panel="output">
+        <div id="output-banner" class="output-banner" hidden>
+          <span id="output-banner-text"></span>
+          <button id="output-return" type="button">Zur aktuellen Ausgabe</button>
+        </div>
+
+        <section id="debug-view" class="debug-view" aria-label="Debug-Ansicht" hidden>
+          <div class="debug-header">
+            <span class="debug-title">Debug</span>
+            <span id="debug-status" class="debug-status" role="status" aria-live="polite"></span>
+          </div>
+          <div id="debug-locals" class="debug-locals"></div>
+          <pre id="debug-output" class="debug-output" hidden></pre>
+        </section>
+
+        <section id="output" tabindex="0" aria-label="Ausgabe">
+          <pre id="output-text" aria-live="polite"></pre>
+          <div id="output-values"></div>
+        </section>
+      </div>
+
+      <aside id="assistant" class="dock-panel" aria-label="KI-Assistent">
+        <div class="assistant-body">
+          <div class="assistant-field">
+            <label for="assistant-question">Frage</label>
+            <textarea
+              id="assistant-question"
+              rows="4"
+              placeholder="Frage zum aktuellen Code …"
+            ></textarea>
+          </div>
+
+          <div class="assistant-actions">
+            <button id="assistant-send" type="button">
+              Senden (Strg+Enter)
+            </button>
+          </div>
+
+          <div id="assistant-config-hint" class="assistant-config-hint" hidden>
+            <span>Keine gültige KI-Konfiguration.</span>
+            <button id="assistant-settings" type="button" class="link-button">
+              KI-Einstellungen …
+            </button>
+          </div>
+
+          <div id="assistant-status" role="status" aria-live="polite"></div>
+          <div id="assistant-answer" class="assistant-answer"></div>
+        </div>
+      </aside>
+    </div>
+
+    <div id="dock-targets" class="dock-targets" hidden aria-hidden="true">
+      <div class="dock-target dock-target-left" data-side="left">
+        <span>Links</span>
+      </div>
+      <div class="dock-target dock-target-right" data-side="right">
+        <span>Rechts</span>
+      </div>
+      <div class="dock-target dock-target-bottom" data-side="bottom">
+        <span>Unten</span>
+      </div>
+    </div>
+
+    <div id="which-key" class="which-key" role="status" aria-live="polite" hidden></div>
+
+    <div id="modal-root" hidden></div>
   </body>
 </html>

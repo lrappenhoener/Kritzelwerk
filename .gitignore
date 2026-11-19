@@ -1,3 +1,9 @@
+src-tauri/target/
+
+# Erzeugte Release-Artefakte aus deploy.sh
+/kritzelwerk
+/kritzelwerk.bin
+
 # Logs
 logs
 *.log
